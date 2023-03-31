@@ -16,9 +16,9 @@ type ScrollviewEnhancerProps = {
   style: ViewStyle;
 };
 
-const ComponentName = 'ScrollviewEnhancerView';
+const ComponentName = 'ScrollViewEnhancerView';
 
-export const ScrollviewEnhancerView =
+export const ScrollViewEnhancerView =
   UIManager.getViewManagerConfig(ComponentName) != null
     ? requireNativeComponent<ScrollviewEnhancerProps>(ComponentName)
     : () => {

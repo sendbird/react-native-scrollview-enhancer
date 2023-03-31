@@ -1,12 +1,25 @@
 import * as React from 'react';
 
-import { StyleSheet, View } from 'react-native';
-import { ScrollviewEnhancerView } from 'react-native-scrollview-enhancer';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollViewEnhancerView } from '@sendbird/react-native-scrollview-enhancer';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <ScrollviewEnhancerView color="#32a852" style={styles.box} />
+      <ScrollViewEnhancerView
+        style={styles.box}
+        maintainVisibleContentPosition={{
+          autoscrollToTopThreshold: 10,
+          minIndexForVisible: 0,
+        }}
+      >
+        <ScrollView
+          maintainVisibleContentPosition={{
+            autoscrollToTopThreshold: 10,
+            minIndexForVisible: 0,
+          }}
+        />
+      </ScrollViewEnhancerView>
     </View>
   );
 }
@@ -18,8 +31,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   box: {
-    width: 60,
-    height: 60,
+    borderWidth: 1,
+    backgroundColor: 'red',
     marginVertical: 20,
   },
 });

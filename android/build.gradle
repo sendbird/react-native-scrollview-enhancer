@@ -79,7 +79,7 @@ dependencies {
 if (isNewArchitectureEnabled()) {
   react {
     jsRootDir = file("../src/")
-    libraryName = "ScrollviewEnhancerView"
+    libraryName = "ScrollViewEnhancerView"
     codegenJavaPackageName = "com.scrollviewenhancer"
   }
 }

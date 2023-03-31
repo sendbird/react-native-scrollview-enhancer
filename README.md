@@ -11,11 +11,11 @@ npm install react-native-scrollview-enhancer
 ## Usage
 
 ```js
-import { ScrollviewEnhancerView } from "react-native-scrollview-enhancer";
+import { ScrollViewEnhancerView } from "react-native-scrollview-enhancer";
 
 // ...
 
-<ScrollviewEnhancerView color="tomato" />
+<ScrollViewEnhancerView color="tomato" />
 ```
 
 ## Contributing

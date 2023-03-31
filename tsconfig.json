@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "react-native-scrollview-enhancer": ["./src/index"]
+      "@sendbird/react-native-scrollview-enhancer": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
