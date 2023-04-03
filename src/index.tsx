@@ -1,7 +1,9 @@
+import React from 'react';
 import {
-  requireNativeComponent,
-  UIManager,
   Platform,
+  requireNativeComponent,
+  ScrollViewProps,
+  UIManager,
   ViewStyle,
 } from 'react-native';
 
@@ -11,16 +13,20 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-type ScrollviewEnhancerProps = {
-  color: string;
-  style: ViewStyle;
-};
+type ScrollViewEnhancerProps = React.PropsWithChildren<{
+  style?: ViewStyle;
+  maintainVisibleContentPosition?: ScrollViewProps['maintainVisibleContentPosition'];
+}>;
 
 const ComponentName = 'ScrollViewEnhancerView';
 
-export const ScrollViewEnhancerView =
+const NativeView =
   UIManager.getViewManagerConfig(ComponentName) != null
-    ? requireNativeComponent<ScrollviewEnhancerProps>(ComponentName)
+    ? requireNativeComponent<ScrollViewEnhancerProps>(ComponentName)
     : () => {
         throw new Error(LINKING_ERROR);
       };
+
+export const ScrollViewEnhancerView = (props: ScrollViewEnhancerProps) => {
+  return <NativeView {...props} />;
+};
