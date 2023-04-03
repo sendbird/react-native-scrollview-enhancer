@@ -1,22 +1,19 @@
 import * as React from 'react';
 import { useState } from 'react';
 
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { ScrollViewEnhancerView } from '@sendbird/react-native-scrollview-enhancer';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList } from '@sendbird/react-native-scrollview-enhancer';
 
 let lastIdx = 0;
 function messageFetcher(count: number) {
   const response = new Array(count)
     .fill(0)
-    .map((_, index) => {
-      return {
-        id: `${index}+${Date.now()}`,
-        message: `Message ${lastIdx + index}`,
-      };
-    })
+    .map((_, index) => ({
+      id: `${index}+${Date.now()}`,
+      message: `Message ${lastIdx + index}`,
+    }))
     .reverse();
   lastIdx += count;
-  console.log(lastIdx);
   return response;
 }
 
@@ -28,39 +25,34 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <ScrollViewEnhancerView
+      <FlatList
+        inverted
         style={styles.box}
         maintainVisibleContentPosition={{
           autoscrollToTopThreshold: 10,
           minIndexForVisible: 0,
         }}
-      >
-        <FlatList
-          inverted
-          style={styles.box}
-          onLayout={(e) => console.log('flatlist', e.nativeEvent)}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            return (
-              <View
-                style={{
-                  width: '100%',
-                  backgroundColor: 'gray',
-                  marginBottom: 4,
-                  padding: 24,
-                }}
-              >
-                <Text style={{ color: 'white' }}>{item.message}</Text>
-              </View>
-            );
-          }}
-        />
-      </ScrollViewEnhancerView>
+        onLayout={(e) => console.log('flatlist', e.nativeEvent)}
+        data={messages}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => {
+          return (
+            <View
+              style={{
+                width: '100%',
+                backgroundColor: 'gray',
+                marginBottom: 4,
+                padding: 24,
+              }}
+            >
+              <Text style={{ color: 'white' }}>{item.message}</Text>
+            </View>
+          );
+        }}
+      />
       <Pressable
         style={{ width: 100, height: 100 }}
         onPress={() => {
-          console.log('trigger');
           setMessages((prev) => [...messageFetcher(5), ...prev]);
         }}
       >
