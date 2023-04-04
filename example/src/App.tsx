@@ -2,7 +2,10 @@ import * as React from 'react';
 import { useState } from 'react';
 
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { FlatList } from '@sendbird/react-native-scrollview-enhancer';
+import {
+  FlatList,
+  ScrollView,
+} from '@sendbird/react-native-scrollview-enhancer';
 
 let lastIdx = 0;
 function messageFetcher(count: number) {
@@ -25,12 +28,22 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <ScrollView>
+        <Text>{'123'}</Text>
+      </ScrollView>
       <FlatList
         inverted
         style={styles.box}
+        onStartReachedThreshold={2}
         maintainVisibleContentPosition={{
-          autoscrollToTopThreshold: 10,
-          minIndexForVisible: 0,
+          autoscrollToTopThreshold: 0,
+          minIndexForVisible: 1,
+        }}
+        onStartReached={() => {
+          setMessages((prev) => [...prev, ...messageFetcher(20)]);
+        }}
+        onEndReached={() => {
+          setMessages((prev) => [...messageFetcher(20), ...prev]);
         }}
         onLayout={(e) => console.log('flatlist', e.nativeEvent)}
         data={messages}
@@ -53,7 +66,7 @@ export default function App() {
       <Pressable
         style={{ width: 100, height: 100 }}
         onPress={() => {
-          setMessages((prev) => [...messageFetcher(5), ...prev]);
+          setMessages((prev) => [...messageFetcher(20), ...prev]);
         }}
       >
         <Text>{'Load more'}</Text>
@@ -74,6 +87,5 @@ const styles = StyleSheet.create({
   },
   box: {
     flex: 1,
-    backgroundColor: 'blue',
   },
 });
