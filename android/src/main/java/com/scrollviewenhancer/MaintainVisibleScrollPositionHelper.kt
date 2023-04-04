@@ -65,6 +65,8 @@ class MaintainVisibleScrollPositionHelper(
     get() = Assertions.assertNotNull(
       UIManagerHelper.getUIManagerForReactTag(mScrollView.context as ReactContext, mScrollView.id)
     )
+  private val uiManagerModule: UIManagerModule?
+    get() = uiManager as? UIManagerModule
 
   /**
    * Start listening to view hierarchy updates. Should be called when this is created.
@@ -74,7 +76,7 @@ class MaintainVisibleScrollPositionHelper(
 
     mListening = true
     uiManager.addUIManagerEventListener(this)
-    (uiManager as? UIManagerModule)?.uiImplementation?.setLayoutUpdateListener(this)
+    uiManagerModule?.uiImplementation?.setLayoutUpdateListener(this)
   }
 
   /**
