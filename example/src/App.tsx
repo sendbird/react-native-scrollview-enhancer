@@ -20,10 +20,27 @@ function messageFetcher(count: number) {
   return response;
 }
 
+const _messages = messageFetcher(500).reverse();
+const cursor = {
+  prev: _messages.length / 2,
+  next: _messages.length / 2 + 1,
+};
+
+function getMessages(direction: 'prev' | 'next', count = 5) {
+  const idx = cursor[direction];
+  const offset = direction === 'prev' ? +count : -count;
+  const res =
+    direction === 'prev'
+      ? _messages.slice(idx, idx + offset)
+      : _messages.slice(idx + offset, idx);
+  cursor[direction] += offset;
+  return res;
+}
+
 export default function App() {
   const [layout, setLayout] = useState(50);
   const [messages, setMessages] = useState<{ id: string; message: string }[]>(
-    () => messageFetcher(5)
+    () => getMessages('prev', 10)
   );
 
   return (
@@ -39,13 +56,14 @@ export default function App() {
           autoscrollToTopThreshold: 0,
           minIndexForVisible: 1,
         }}
-        onStartReached={() => {
-          setMessages((prev) => [...prev, ...messageFetcher(20)]);
-        }}
         onEndReached={() => {
-          setMessages((prev) => [...messageFetcher(20), ...prev]);
+          console.log('onEndReached');
+          setMessages((prev) => [...prev, ...getMessages('prev')]);
         }}
-        onLayout={(e) => console.log('flatlist', e.nativeEvent)}
+        onStartReached={() => {
+          console.log('onStartReached');
+          setMessages((prev) => [...getMessages('next'), ...prev]);
+        }}
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
@@ -66,7 +84,7 @@ export default function App() {
       <Pressable
         style={{ width: 100, height: 100 }}
         onPress={() => {
-          setMessages((prev) => [...messageFetcher(20), ...prev]);
+          setMessages((prev) => [...getMessages('next'), ...prev]);
         }}
       >
         <Text>{'Load more'}</Text>

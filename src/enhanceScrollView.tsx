@@ -59,7 +59,14 @@ export function useBiDirection<
   };
 
   const renderScrollView = () => {
-    return <Component {...props} onScroll={onScroll} />;
+    return (
+      <Component
+        scrollEventThrottle={16}
+        {...props}
+        ref={getRef()}
+        onScroll={onScroll}
+      />
+    );
   };
 
   return {
