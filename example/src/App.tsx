@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
@@ -7,41 +7,56 @@ import {
   ScrollView,
 } from '@sendbird/react-native-scrollview-enhancer';
 
-let lastIdx = 0;
 function messageFetcher(count: number) {
-  const response = new Array(count)
+  return new Array(count)
     .fill(0)
     .map((_, index) => ({
       id: `${index}+${Date.now()}`,
-      message: `Message ${lastIdx + index}`,
+      message: `Message ${index}`,
     }))
     .reverse();
-  lastIdx += count;
-  return response;
 }
 
-const _messages = messageFetcher(500).reverse();
-const cursor = {
-  prev: _messages.length / 2,
-  next: _messages.length / 2 + 1,
-};
+class BasicQuery {
+  private _messages = messageFetcher(500).reverse();
+  private _cursor = {
+    prev: this._messages.length / 2,
+    next: this._messages.length / 2 - 1,
+  };
 
-function getMessages(direction: 'prev' | 'next', count = 5) {
-  const idx = cursor[direction];
-  const offset = direction === 'prev' ? +count : -count;
-  const res =
-    direction === 'prev'
-      ? _messages.slice(idx, idx + offset)
-      : _messages.slice(idx + offset, idx);
-  cursor[direction] += offset;
-  return res;
+  loadPrev(count: number) {
+    const sliceRange = [this._cursor.prev, this._cursor.prev + count];
+    this._cursor.prev += count;
+    return this._messages.slice(...sliceRange);
+  }
+  loadNext(count: number) {
+    const sliceRange = [this._cursor.next - count, this._cursor.next];
+    this._cursor.next -= count;
+    return this._messages.slice(...sliceRange);
+  }
+  get hasNext() {
+    return this._cursor.next > 0;
+  }
+  get hasPrev() {
+    return this._cursor.prev < this._messages.length;
+  }
 }
 
 export default function App() {
+  const query = useRef(new BasicQuery());
   const [layout, setLayout] = useState(50);
   const [messages, setMessages] = useState<{ id: string; message: string }[]>(
-    () => getMessages('prev', 10)
+    () => query.current.loadPrev(10)
   );
+
+  const onEndReached = () => {
+    console.log('onEndReached');
+    setMessages((prev) => [...prev, ...query.current.loadPrev(5)]);
+  };
+  const onStartReached = () => {
+    console.log('onStartReached');
+    setMessages((prev) => [...query.current.loadNext(5), ...prev]);
+  };
 
   return (
     <View style={styles.container}>
@@ -56,14 +71,8 @@ export default function App() {
           autoscrollToTopThreshold: 0,
           minIndexForVisible: 1,
         }}
-        onEndReached={() => {
-          console.log('onEndReached');
-          setMessages((prev) => [...prev, ...getMessages('prev')]);
-        }}
-        onStartReached={() => {
-          console.log('onStartReached');
-          setMessages((prev) => [...getMessages('next'), ...prev]);
-        }}
+        onEndReached={onEndReached}
+        onStartReached={onStartReached}
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
@@ -81,13 +90,9 @@ export default function App() {
           );
         }}
       />
-      <Pressable
-        style={{ width: 100, height: 100 }}
-        onPress={() => {
-          setMessages((prev) => [...getMessages('next'), ...prev]);
-        }}
-      >
-        <Text>{'Load more'}</Text>
+
+      <Pressable style={{ width: 100, height: 100 }} onPress={onStartReached}>
+        <Text>{'Load next'}</Text>
       </Pressable>
 
       <View style={{ width: layout, height: 20, backgroundColor: 'blue' }}>
