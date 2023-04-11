@@ -18,10 +18,7 @@ export type EnhancedScrollViewProps = {
    * Called once when the scroll position gets within `onStartReachedThreshold`
    * from the logical start of the list.
    */
-  onStartReached?:
-    | ((info: { distanceFromStart: number }) => void)
-    | null
-    | undefined;
+  onStartReached?: ((info: { distanceFromStart: number }) => void) | null | undefined;
 
   /**
    * How far from the start (in units of visible length of the list) the leading edge of the
@@ -34,10 +31,7 @@ export type EnhancedScrollViewProps = {
   /**
    * Called once when the scroll position gets within onEndReachedThreshold of the rendered content.
    */
-  onEndReached?:
-    | ((info: { distanceFromEnd: number }) => void)
-    | null
-    | undefined;
+  onEndReached?: ((info: { distanceFromEnd: number }) => void) | null | undefined;
 
   /**
    * How far from the end (in units of visible length of the list) the bottom edge of the
@@ -51,9 +45,7 @@ export type EnhancedScrollViewProps = {
 };
 
 export type GetProps<T> = T extends ComponentType<infer P> ? P : never;
-export type InjectProps<C, P> = C extends ComponentType<infer T>
-  ? ComponentType<T & P>
-  : never;
+export type InjectProps<C, P> = C extends ComponentType<infer T> ? ComponentType<T & P> : never;
 export type EnhancedScrollViewAbstraction<T> = ForwardRefExoticComponent<
   PropsWithoutRef<EnhancedScrollViewProps> & RefAttributes<T>
 >;

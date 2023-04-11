@@ -1,11 +1,8 @@
 import * as React from 'react';
 import { useRef, useState } from 'react';
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import {
-  FlatList,
-  ScrollView,
-} from '@sendbird/react-native-scrollview-enhancer';
+import { FlatList as RNFlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList } from '@sendbird/react-native-scrollview-enhancer';
 
 function messageFetcher(count: number) {
   return new Array(count)
@@ -44,10 +41,9 @@ class BasicQuery {
 
 export default function App() {
   const query = useRef(new BasicQuery());
-  const [layout, setLayout] = useState(50);
-  const [messages, setMessages] = useState<{ id: string; message: string }[]>(
-    () => query.current.loadPrev(10)
-  );
+  const [messages, setMessages] = useState<{ id: string; message: string }[]>(() => query.current.loadPrev(10));
+
+  const viewRef = useRef<RNFlatList>(null);
 
   const onEndReached = () => {
     console.log('onEndReached');
@@ -61,16 +57,10 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Text>{'123'}</Text>
-      </ScrollView>
       <FlatList
         inverted
+        ref={viewRef}
         style={styles.box}
-        maintainVisibleContentPosition={{
-          autoscrollToTopThreshold: 0,
-          minIndexForVisible: 1,
-        }}
         onEndReached={onEndReached}
         onStartReached={onStartReached}
         data={messages}
@@ -78,20 +68,18 @@ export default function App() {
         renderItem={({ item }) => {
           return (
             <View style={styles.message}>
-              <Text style={{ color: 'white' }}>{item.message}</Text>
+              <Text style={styles.messageText}>{item.message}</Text>
             </View>
           );
         }}
       />
-
-      <Pressable style={{ width: 100, height: 100 }} onPress={onStartReached}>
-        <Text>{'Load next'}</Text>
-      </Pressable>
-
-      <View style={{ width: layout, height: 20, backgroundColor: 'blue' }}>
-        <Pressable onPress={() => setLayout((prev) => (prev === 25 ? 50 : 25))}>
-          <Text>{'Change'}</Text>
-        </Pressable>
+      <View style={styles.buttons}>
+        <TouchableOpacity style={styles.button} onPress={() => viewRef.current?.scrollToEnd()}>
+          <Text>{'scroll to end'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => viewRef.current?.scrollToOffset({ offset: 0 })}>
+          <Text>{'scroll to start'}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -102,6 +90,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   box: {
+    backgroundColor: 'black',
     flex: 1,
   },
   message: {
@@ -109,5 +98,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     marginBottom: 4,
     padding: 24,
+  },
+  messageText: {
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  buttons: {
+    flexDirection: 'row',
+  },
+  button: {
+    flex: 1,
+    height: 80,
+    margin: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1b77ff',
   },
 });
