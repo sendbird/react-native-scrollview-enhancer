@@ -53,6 +53,7 @@ export default function App() {
     console.log('onEndReached');
     setMessages((prev) => [...prev, ...query.current.loadPrev(5)]);
   };
+
   const onStartReached = () => {
     console.log('onStartReached');
     setMessages((prev) => [...query.current.loadNext(5), ...prev]);
@@ -66,7 +67,6 @@ export default function App() {
       <FlatList
         inverted
         style={styles.box}
-        onStartReachedThreshold={2}
         maintainVisibleContentPosition={{
           autoscrollToTopThreshold: 0,
           minIndexForVisible: 1,
@@ -77,14 +77,7 @@ export default function App() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           return (
-            <View
-              style={{
-                width: '100%',
-                backgroundColor: 'gray',
-                marginBottom: 4,
-                padding: 24,
-              }}
-            >
+            <View style={styles.message}>
               <Text style={{ color: 'white' }}>{item.message}</Text>
             </View>
           );
@@ -110,5 +103,11 @@ const styles = StyleSheet.create({
   },
   box: {
     flex: 1,
+  },
+  message: {
+    width: '100%',
+    backgroundColor: 'gray',
+    marginBottom: 4,
+    padding: 24,
   },
 });
