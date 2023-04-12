@@ -1,19 +1,16 @@
-import {
-  FlatList as RNFlatList,
-  ScrollView as RNScrollView,
-  SectionList as RNSectionList,
-} from 'react-native';
+import { FlatList as RNFlatList, ScrollView as RNScrollView, SectionList as RNSectionList } from 'react-native';
 import type { EnhancedScrollViewAbstraction } from './types';
-import { enhanceScrollView } from './enhanceScrollView';
+import { enhanceScrollViewWithBidirectional } from './enhanceScrollView';
 
-const ScrollView = enhanceScrollView(RNScrollView);
-const FlatList = enhanceScrollView(RNFlatList) as unknown as
+const ScrollView = enhanceScrollViewWithBidirectional(RNScrollView);
+const FlatList = enhanceScrollViewWithBidirectional(RNFlatList) as unknown as
   | typeof RNFlatList
   | EnhancedScrollViewAbstraction<RNFlatList>;
-const SectionList = enhanceScrollView(RNSectionList) as unknown as
+const SectionList = enhanceScrollViewWithBidirectional(RNSectionList) as unknown as
   | typeof RNSectionList
   | EnhancedScrollViewAbstraction<RNSectionList>;
 
-export { enhanceScrollView, useBiDirection } from './enhanceScrollView';
+export { enhanceScrollView, enhanceScrollViewWithBidirectional } from './enhanceScrollView';
+export { useBiDirectional } from './useBiDirectional';
 export { ScrollViewEnhancerView } from './native';
 export { ScrollView, FlatList, SectionList };
