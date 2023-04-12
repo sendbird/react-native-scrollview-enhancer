@@ -1,6 +1,6 @@
 import type { NativeScrollEvent, NativeSyntheticEvent, VirtualizedListProps } from 'react-native';
 import type { EnhancedScrollViewProps } from './types';
-import React, { ComponentType, useCallback, useRef } from 'react';
+import React, { ComponentType, useRef } from 'react';
 import { deferred } from './deferred';
 
 type ScrollMetrics = {
@@ -156,21 +156,18 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
     }
   };
 
-  const onScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      props.onScroll?.(e);
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    props.onScroll?.(e);
 
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
 
-      const offset = isHorizontal ? contentOffset.x : contentOffset.y;
-      const visibleLength = isHorizontal ? layoutMeasurement.width : layoutMeasurement.height;
-      const contentLength = isHorizontal ? contentSize.width : contentSize.height;
+    const offset = isHorizontal ? contentOffset.x : contentOffset.y;
+    const visibleLength = isHorizontal ? layoutMeasurement.width : layoutMeasurement.height;
+    const contentLength = isHorizontal ? contentSize.width : contentSize.height;
 
-      maybeCallOnEdgeReached(offset, visibleLength, contentLength);
-      updateScrollMetrics({ offset, visibleLength, contentLength, timestamp: e.timeStamp });
-    },
-    [props.onScroll]
-  );
+    maybeCallOnEdgeReached(offset, visibleLength, contentLength);
+    updateScrollMetrics({ offset, visibleLength, contentLength, timestamp: e.timeStamp });
+  };
 
   const onContentSizeChange = (w: number, h: number) => {
     props.onContentSizeChange?.(w, h);
