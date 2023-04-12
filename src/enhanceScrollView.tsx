@@ -3,7 +3,7 @@ import { Dimensions, Platform } from 'react-native';
 import { ScrollViewEnhancerView } from './native';
 import type { EnhancedScrollViewProps, GetProps, ScrollViewEnhancerProps } from './types';
 import { getRNVersion } from './utils';
-import { useBiDirection } from './useBiDirection';
+import { useBiDirectional } from './useBiDirectional';
 
 const { minor } = getRNVersion();
 const SHOULD_ENHANCE = Platform.OS === 'android' && minor < 72;
@@ -19,8 +19,33 @@ const getMaintainVisibleContentPosition = (option?: ScrollViewEnhancerProps['mai
 export const enhanceScrollView = <T extends ComponentType<P>, P extends ScrollViewEnhancerProps = GetProps<T>>(
   ScrollViewComponent: T
 ) => {
+  return React.forwardRef<T, P & Pick<EnhancedScrollViewProps, 'maintainVisibleContentPosition'>>(
+    (props: P, ref?: any): React.ReactElement | null => {
+      if (SHOULD_ENHANCE) {
+        return (
+          <ScrollViewEnhancerView
+            style={props.style}
+            horizontal={props.horizontal}
+            maintainVisibleContentPosition={getMaintainVisibleContentPosition(props.maintainVisibleContentPosition)}
+          >
+            <ScrollViewComponent ref={ref} {...(props as any)} />
+          </ScrollViewEnhancerView>
+        );
+      } else {
+        return <ScrollViewComponent ref={ref} {...(props as any)} />;
+      }
+    }
+  );
+};
+
+export const enhanceScrollViewWithBidirectional = <
+  T extends ComponentType<P>,
+  P extends ScrollViewEnhancerProps = GetProps<T>
+>(
+  ScrollViewComponent: T
+) => {
   return React.forwardRef<T, P & EnhancedScrollViewProps>((props: P, ref?: any): React.ReactElement | null => {
-    const { renderScrollView } = useBiDirection(ScrollViewComponent, props, ref);
+    const { renderScrollView } = useBiDirectional(ScrollViewComponent, props, ref);
 
     if (SHOULD_ENHANCE) {
       return (

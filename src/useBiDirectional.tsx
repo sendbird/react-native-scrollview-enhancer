@@ -1,6 +1,6 @@
 import type { NativeScrollEvent, NativeSyntheticEvent, VirtualizedListProps } from 'react-native';
 import type { EnhancedScrollViewProps } from './types';
-import React, { ComponentType, useRef } from 'react';
+import React, { ComponentType, useCallback, useRef } from 'react';
 import { deferred } from './deferred';
 
 type ScrollMetrics = {
@@ -14,6 +14,19 @@ const ON_EDGE_REACHED_EPSILON = 0.001;
 const DEFAULT_LAZY_FETCH_MS = 250;
 const DEFAULT_EDGE_REACHED_THRESHOLD = 2;
 
+function getDistanceFrom(offset: number, visibleLength: number, contentLength: number) {
+  let distanceFromStart = offset;
+  let distanceFromEnd = contentLength - visibleLength - offset;
+
+  // Especially when oERT is zero it's necessary to 'floor' very small distance values to be 0
+  // since debouncing causes us to not fire this event for every single "pixel" we scroll and can thus
+  // be at the edge of the list with a distance approximating 0 but not quite there.
+  if (distanceFromStart < ON_EDGE_REACHED_EPSILON) distanceFromStart = 0;
+  if (distanceFromEnd < ON_EDGE_REACHED_EPSILON) distanceFromEnd = 0;
+
+  return { distanceFromStart, distanceFromEnd };
+}
+
 function onEdgeReachedThresholdOrDefault(visibleLength: number, onEdgeReachedThreshold?: number | null) {
   if (typeof onEdgeReachedThreshold === 'number') {
     return onEdgeReachedThreshold * visibleLength;
@@ -21,7 +34,7 @@ function onEdgeReachedThresholdOrDefault(visibleLength: number, onEdgeReachedThr
   return DEFAULT_EDGE_REACHED_THRESHOLD;
 }
 
-export function useBiDirection<P extends Partial<VirtualizedListProps<any> & EnhancedScrollViewProps> = {}>(
+export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & EnhancedScrollViewProps> = {}>(
   Component: ComponentType<P>,
   props: P,
   ref?: any
@@ -45,19 +58,6 @@ export function useBiDirection<P extends Partial<VirtualizedListProps<any> & Enh
       const lazyOnEdgeReached = key === 'distanceFromStart' ? lazyOnStartReached : lazyOnEndReached;
       lazyOnEdgeReached(distanceFromEdge);
     }
-  }
-
-  function getDistanceFrom(offset: number, visibleLength: number, contentLength: number) {
-    let distanceFromStart = offset;
-    let distanceFromEnd = contentLength - visibleLength - offset;
-
-    // Especially when oERT is zero it's necessary to 'floor' very small distance values to be 0
-    // since debouncing causes us to not fire this event for every single "pixel" we scroll and can thus
-    // be at the edge of the list with a distance approximating 0 but not quite there.
-    if (distanceFromStart < ON_EDGE_REACHED_EPSILON) distanceFromStart = 0;
-    if (distanceFromEnd < ON_EDGE_REACHED_EPSILON) distanceFromEnd = 0;
-
-    return { distanceFromStart, distanceFromEnd };
   }
 
   function updateScrollMetrics(metrics: Partial<ScrollMetrics>) {
@@ -156,18 +156,21 @@ export function useBiDirection<P extends Partial<VirtualizedListProps<any> & Enh
     }
   };
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    props.onScroll?.(e);
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      props.onScroll?.(e);
 
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
 
-    const offset = isHorizontal ? contentOffset.x : contentOffset.y;
-    const visibleLength = isHorizontal ? layoutMeasurement.width : layoutMeasurement.height;
-    const contentLength = isHorizontal ? contentSize.width : contentSize.height;
+      const offset = isHorizontal ? contentOffset.x : contentOffset.y;
+      const visibleLength = isHorizontal ? layoutMeasurement.width : layoutMeasurement.height;
+      const contentLength = isHorizontal ? contentSize.width : contentSize.height;
 
-    maybeCallOnEdgeReached(offset, visibleLength, contentLength);
-    updateScrollMetrics({ offset, visibleLength, contentLength, timestamp: e.timeStamp });
-  };
+      maybeCallOnEdgeReached(offset, visibleLength, contentLength);
+      updateScrollMetrics({ offset, visibleLength, contentLength, timestamp: e.timeStamp });
+    },
+    [props.onScroll]
+  );
 
   const onContentSizeChange = (w: number, h: number) => {
     props.onContentSizeChange?.(w, h);
