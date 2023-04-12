@@ -7,11 +7,11 @@ import { useBiDirection } from './useBiDirection';
 
 const { minor } = getRNVersion();
 const SHOULD_ENHANCE = Platform.OS === 'android' && minor < 72;
-const DEFAULT_PREVENT_SCROLL_THRESHOLD = -(Dimensions.get('window').height * 2);
+const DEFAULT_PREVENT_AUTO_SCROLL_THRESHOLD = -(Dimensions.get('window').height * 2);
 
 const getMaintainVisibleContentPosition = (option?: ScrollViewEnhancerProps['maintainVisibleContentPosition']) => {
   return {
-    autoscrollToTopThreshold: option?.autoscrollToTopThreshold ?? DEFAULT_PREVENT_SCROLL_THRESHOLD,
+    autoscrollToTopThreshold: option?.autoscrollToTopThreshold ?? DEFAULT_PREVENT_AUTO_SCROLL_THRESHOLD,
     minIndexForVisible: option?.minIndexForVisible ?? 0,
   };
 };
