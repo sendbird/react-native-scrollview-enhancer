@@ -89,9 +89,7 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
     if (res instanceof Promise) {
       res.then(() => p.resolve());
     } else {
-      setTimeout(() => {
-        p.resolve();
-      }, DEFAULT_LAZY_FETCH_MS);
+      setTimeout(() => p.resolve(), DEFAULT_LAZY_FETCH_MS);
     }
 
     return p.promise;
