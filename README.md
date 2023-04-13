@@ -78,8 +78,11 @@ const BiDirectionalFlatList = enhanceScrollViewWithBidirectional(FlatList);
 
 ## Limitations
 
-Since updates occur in the middle of React-Native's update cycle rather than the normal Android view, VirtualizedList update cycle, some bugs may be caused by delayed updates.
 It is recommended to use stable features provided in versions 0.72 and above.
+
+- Since updates occur in the middle of React-Native's update cycle rather than the Android view and VirtualizedList update cycle, some bugs may be caused by delayed updates.
+- Fabric(new architecture of React-Native) is not supported.
+- Horizontal maintainVisibleContentPosition is not supported.
 
 ## License
 
