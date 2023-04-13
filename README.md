@@ -84,10 +84,20 @@ It is recommended to use stable features provided in versions 0.72 and above.
 - Fabric(new architecture of React-Native) is not supported.
 - Horizontal maintainVisibleContentPosition is not supported.
 
+## Related PRs
+
+You can find the related work for these features in the following PR.
+
+- [#35993 Fix VirtualizedList with maintainVisibleContentPosition](https://github.com/facebook/react-native/pull/35993)
+- [#35321 Add onStartReached and onStartReachedThreshold to VirtualizedList](https://github.com/facebook/react-native/pull/35321)
+- [#35049 Add maintainVisibleContentPosition support on Android for legacy renderer](https://github.com/facebook/react-native/pull/35049)
+- [#35994 Add fabric support for maintainVisibleContentPosition on Android](https://github.com/facebook/react-native/pull/35994)
+- [#36095 Add fabric support for maintainVisibleContentPosition on iOS](https://github.com/facebook/react-native/pull/36095)
+
 ## License
 
 MIT
 
----
+<br/>
 
 Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
