@@ -1,26 +1,80 @@
-# react-native-scrollview-enhancer
+# @sendbird/react-native-scrollview-enhancer
 
-ScrollView enhancer
+A utility package that enables the use of `onStartReached` and `maintainVisibleContentPosition` features in ScrollView components in react-native versions prior to 0.72.
 
 ## Installation
 
 ```sh
-npm install react-native-scrollview-enhancer
+npm install @sendbird/react-native-scrollview-enhancer
 ```
 
 ## Usage
 
-```js
-import { ScrollViewEnhancerView } from "react-native-scrollview-enhancer";
+You can use a scroll view components with `onStartReached` and `maintainVisibleContentPosition` applied as follows.
 
-// ...
+```tsx
+import { FlatList, ScrollView, SectionList } from '@sendbird/react-native-scrollview-enhancer';
 
-<ScrollViewEnhancerView color="tomato" />
+const App = () => {
+  return (
+    <FlatList
+      inverted
+      data={messages}
+      renderItem={renderMessageItem}
+      onEndReached={onEndReached}
+      onStartReached={onStartReached}
+    />
+  );
+};
 ```
 
-## Contributing
+## Customization
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+### maintainVisibleContentPosition
+
+The `maintainVisibleContentPosition` feature can be used by wrapping the ScrollView component (`ScrollView`, `FlatList`, `SectionList`, `VirtualizedList`) that you want to use with the `ScrollViewEnhancerView` component.
+
+```tsx
+import { ScrollView } from 'react-native';
+import { ScrollViewEnhancerView } from '@sendbird/react-native-scrollview-enhancer';
+
+const App = () => {
+  return (
+    <ScrollViewEnhancerView>
+      <ScrollView />
+    </ScrollViewEnhancerView>
+  );
+};
+```
+
+### onStartReached
+
+This package provides a `useBidirectional` hook that adds `onStartReached` to the `ScrollView`.
+
+```tsx
+import { View, FlatList } from 'react-native';
+import { useBiDirectional } from '@sendbird/react-native-scrollview-enhancer';
+
+const App = () => {
+  const { renderScrollView } = useBiDirectional(FlatList, props, ref);
+  return <View>{renderScrollView()}</View>;
+};
+```
+
+### Utility functions
+
+This package provides the following utility functions to make it easier to use:
+
+- enhanceScrollView: adds `maintainVisibleContentPosition` feature to the ScrollView component
+- enhanceScrollViewWithBidirectional: adds `maintainVisibleContentPosition` and `onStartReached` features to the ScrollView component
+
+```tsx
+import { ScrollView, FlatList } from 'react-native';
+import { enhanceScrollView, enhanceScrollViewWithBidirectional } from '@sendbird/react-native-scrollview-enhancer';
+
+const EnhancedScrollView = enhanceScrollView(ScrollView);
+const BiDirectionalFlatList = enhanceScrollViewWithBidirectional(FlatList);
+```
 
 ## License
 
