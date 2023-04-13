@@ -1,6 +1,6 @@
 {
   "name": "@sendbird/react-native-scrollview-enhancer",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "ScrollView enhancer",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
