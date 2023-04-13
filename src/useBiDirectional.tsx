@@ -1,3 +1,8 @@
+/**
+ * Original Code
+ * @link https://github.com/facebook/react-native/blob/main/packages/virtualized-lists/Lists/VirtualizedList.js
+ */
+
 import type { NativeScrollEvent, NativeSyntheticEvent, VirtualizedListProps } from 'react-native';
 import type { EnhancedScrollViewProps } from './types';
 import React, { ComponentType, useRef } from 'react';
@@ -47,19 +52,6 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
   const sentEndForContentLength = useRef(0);
   const sentStartForContentLength = useRef(0);
 
-  function maybeRecallOnEdgeReached(key: 'distanceFromStart' | 'distanceFromEnd', threshold: number) {
-    const distanceFromEdge = getDistanceFrom(
-      scrollMetrics.current.offset,
-      scrollMetrics.current.visibleLength,
-      scrollMetrics.current.contentLength
-    )[key];
-
-    if (distanceFromEdge <= threshold) {
-      const lazyOnEdgeReached = key === 'distanceFromStart' ? lazyOnStartReached : lazyOnEndReached;
-      lazyOnEdgeReached(distanceFromEdge);
-    }
-  }
-
   function updateScrollMetrics(metrics: Partial<ScrollMetrics>) {
     if (typeof metrics.offset === 'number') {
       scrollMetrics.current.offset = metrics.offset;
@@ -105,7 +97,7 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
     return p.promise;
   }
 
-  const maybeCallOnEdgeReached = (offset: number, visibleLength: number, contentLength: number) => {
+  function maybeCallOnEdgeReached(offset: number, visibleLength: number, contentLength: number) {
     if (visibleLength < 0 || contentLength < 0) return;
 
     const { onEndReached, onStartReached } = props;
@@ -154,9 +146,22 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
         sentStartForContentLength.current = 0;
       }
     }
-  };
+  }
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  function maybeRecallOnEdgeReached(key: 'distanceFromStart' | 'distanceFromEnd', threshold: number) {
+    const distanceFromEdge = getDistanceFrom(
+      scrollMetrics.current.offset,
+      scrollMetrics.current.visibleLength,
+      scrollMetrics.current.contentLength
+    )[key];
+
+    if (distanceFromEdge <= threshold) {
+      const lazyOnEdgeReached = key === 'distanceFromStart' ? lazyOnStartReached : lazyOnEndReached;
+      lazyOnEdgeReached(distanceFromEdge);
+    }
+  }
+
+  function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
     props.onScroll?.(e);
 
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
@@ -167,14 +172,14 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
 
     maybeCallOnEdgeReached(offset, visibleLength, contentLength);
     updateScrollMetrics({ offset, visibleLength, contentLength, timestamp: e.timeStamp });
-  };
+  }
 
-  const onContentSizeChange = (w: number, h: number) => {
+  function onContentSizeChange(w: number, h: number) {
     props.onContentSizeChange?.(w, h);
     updateScrollMetrics({ contentLength: isHorizontal ? w : h });
-  };
+  }
 
-  const renderScrollView = () => {
+  function renderScrollView() {
     return (
       <Component
         {...props}
@@ -184,7 +189,7 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
         onEndReached={null}
       />
     );
-  };
+  }
 
   return {
     renderScrollView,
