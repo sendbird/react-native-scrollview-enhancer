@@ -2,7 +2,7 @@
  * Original Code
  * @link https://github.com/facebook/react-native/blob/main/packages/virtualized-lists/Lists/VirtualizedList.js
  */
-import type { NativeScrollEvent, NativeSyntheticEvent, VirtualizedListProps } from 'react-native';
+import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, VirtualizedListProps } from 'react-native';
 import React, { ComponentType, useRef } from 'react';
 import { deferred } from './deferred';
 import type { EnhancedScrollViewProps } from './types';
@@ -173,7 +173,21 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
 
   function onContentSizeChange(w: number, h: number) {
     props.onContentSizeChange?.(w, h);
+
     updateScrollMetrics({ contentLength: isHorizontal ? w : h });
+  }
+
+  function onLayout(e: LayoutChangeEvent) {
+    props.onLayout?.(e);
+
+    if (scrollMetrics.current.visibleLength === -1) {
+      updateScrollMetrics({ visibleLength: isHorizontal ? e.nativeEvent.layout.width : e.nativeEvent.layout.height });
+      maybeCallOnEdgeReached(
+        scrollMetrics.current.offset,
+        scrollMetrics.current.visibleLength,
+        scrollMetrics.current.contentLength
+      );
+    }
   }
 
   function renderScrollView() {
@@ -182,6 +196,7 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
         {...props}
         ref={scrollRef()}
         onScroll={onScroll}
+        onLayout={onLayout}
         onContentSizeChange={onContentSizeChange}
         onEndReached={null}
       />
