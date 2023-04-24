@@ -2,11 +2,10 @@
  * Original Code
  * @link https://github.com/facebook/react-native/blob/main/packages/virtualized-lists/Lists/VirtualizedList.js
  */
-
 import type { NativeScrollEvent, NativeSyntheticEvent, VirtualizedListProps } from 'react-native';
-import type { EnhancedScrollViewProps } from './types';
 import React, { ComponentType, useRef } from 'react';
 import { deferred } from './deferred';
+import type { EnhancedScrollViewProps } from './types';
 
 type ScrollMetrics = {
   offset: number;
@@ -48,9 +47,11 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
   const scrollRef = () => ref || innerRef;
   const scrollMetrics = useRef<ScrollMetrics>({ offset: 0, visibleLength: -1, contentLength: -1, timestamp: 0 });
 
+  const inProgressCall = useRef<Promise<void>>(Promise.resolve());
+
   const isHorizontal = props.horizontal ?? false;
-  const sentEndForContentLength = useRef(0);
-  const sentStartForContentLength = useRef(0);
+  const sentEndForContentLength = useRef(new Map<number, boolean>());
+  const sentStartForContentLength = useRef(new Map<number, boolean>());
 
   function updateScrollMetrics(metrics: Partial<ScrollMetrics>) {
     if (typeof metrics.offset === 'number') {
@@ -70,12 +71,14 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
   async function lazyOnEndReached(distanceFromEnd: number): Promise<void> {
     const p = deferred<void>();
 
-    const res = props.onEndReached?.({ distanceFromEnd });
+    const response = props.onEndReached?.({ distanceFromEnd });
+    const resolveLazily = () => setTimeout(() => p.resolve(), DEFAULT_LAZY_FETCH_MS);
+
     // @ts-ignore
-    if (res instanceof Promise) {
-      res.then(() => p.resolve());
+    if (response instanceof Promise) {
+      response.then(resolveLazily).catch(p.reject);
     } else {
-      setTimeout(() => p.resolve(), DEFAULT_LAZY_FETCH_MS);
+      resolveLazily();
     }
 
     return p.promise;
@@ -84,12 +87,14 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
   async function lazyOnStartReached(distanceFromStart: number): Promise<void> {
     const p = deferred<void>();
 
-    const res = props.onStartReached?.({ distanceFromStart });
+    const response = props.onStartReached?.({ distanceFromStart });
+    const resolveLazily = () => setTimeout(() => p.resolve(), DEFAULT_LAZY_FETCH_MS);
+
     // @ts-ignore
-    if (res instanceof Promise) {
-      res.then(() => p.resolve());
+    if (response instanceof Promise) {
+      response.then(resolveLazily).catch(p.reject);
     } else {
-      setTimeout(() => p.resolve(), DEFAULT_LAZY_FETCH_MS);
+      resolveLazily();
     }
 
     return p.promise;
@@ -111,51 +116,45 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
     // First check if the user just scrolled within the end threshold
     // and call onEndReached only once for a given content length,
     // and only if onStartReached is not being executed
-    if (onEndReached && isWithinEndThreshold && sentEndForContentLength.current !== contentLength) {
-      sentEndForContentLength.current = contentLength;
-
-      lazyOnEndReached(distanceFromEnd).then(() => {
-        maybeRecallOnEdgeReached('distanceFromEnd', endThreshold);
-      });
+    if (onEndReached && isWithinEndThreshold && !sentEndForContentLength.current.has(contentLength)) {
+      sentEndForContentLength.current.set(contentLength, true);
+      inProgressCall.current = inProgressCall.current
+        .catch(() => {
+          sentEndForContentLength.current.delete(contentLength);
+        })
+        .finally(() => lazyOnEndReached(distanceFromEnd));
     }
     // Next check if the user just scrolled within the start threshold
     // and call onStartReached only once for a given content length,
     // and only if onEndReached is not being executed
-    else if (onStartReached != null && isWithinStartThreshold && sentStartForContentLength.current !== contentLength) {
+    else if (
+      onStartReached != null &&
+      isWithinStartThreshold &&
+      !sentStartForContentLength.current.has(contentLength)
+    ) {
       // On initial mount when using initialScrollIndex the offset will be 0 initially
       // and will trigger an unexpected onStartReached. To avoid this we can use
       // timestamp to differentiate between the initial scroll metrics and when we actually
       // received the first scroll event.
       if (!props.initialScrollIndex || scrollMetrics.current.timestamp !== 0) {
-        sentStartForContentLength.current = contentLength;
-
-        lazyOnStartReached(distanceFromStart).then(() => {
-          maybeRecallOnEdgeReached('distanceFromStart', endThreshold);
-        });
+        sentStartForContentLength.current.set(contentLength, true);
+        inProgressCall.current = inProgressCall.current
+          .catch(() => {
+            sentStartForContentLength.current.delete(contentLength);
+          })
+          .finally(() => lazyOnStartReached(distanceFromEnd));
       }
     }
+    // NOTE: Changed to Map to handle multiple requests on the same content length
     // If the user scrolls away from the start or end and back again,
     // cause onStartReached or onEndReached to be triggered again
     else {
-      if (!isWithinEndThreshold) {
-        sentEndForContentLength.current = 0;
-      }
-      if (!isWithinStartThreshold) {
-        sentStartForContentLength.current = 0;
-      }
-    }
-  }
-
-  function maybeRecallOnEdgeReached(key: 'distanceFromStart' | 'distanceFromEnd', threshold: number) {
-    const distanceFromEdge = getDistanceFrom(
-      scrollMetrics.current.offset,
-      scrollMetrics.current.visibleLength,
-      scrollMetrics.current.contentLength
-    )[key];
-
-    if (distanceFromEdge <= threshold) {
-      const lazyOnEdgeReached = key === 'distanceFromStart' ? lazyOnStartReached : lazyOnEndReached;
-      lazyOnEdgeReached(distanceFromEdge);
+      // if (!isWithinEndThreshold) {
+      //   sentEndForContentLength.current = 0;
+      // }
+      // if (!isWithinStartThreshold) {
+      //   sentStartForContentLength.current = 0;
+      // }
     }
   }
 
