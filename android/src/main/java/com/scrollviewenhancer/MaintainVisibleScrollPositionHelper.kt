@@ -22,7 +22,6 @@ import com.facebook.react.uimanager.ReactShadowNode
 import com.facebook.react.uimanager.UIImplementation.LayoutUpdateListener
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.UIManagerModule
-import com.facebook.react.uimanager.UIManagerModuleListener
 import com.facebook.react.views.scroll.ReactScrollView
 import com.facebook.react.views.view.ReactViewGroup
 import java.lang.ref.WeakReference
@@ -61,7 +60,7 @@ abstract class MVCPHelper {
 class MaintainVisibleScrollPositionHelper(
   private val mScrollView: ReactScrollView,
   private val mHorizontal: Boolean = false
-): MVCPHelper(), UIManagerModuleListener, LayoutUpdateListener {
+): MVCPHelper(), UIManagerListener, LayoutUpdateListener {
   private var mFirstVisibleView: WeakReference<View>? = null
   private var mPrevFirstVisibleFrame: Rect? = null
   private var mListening: Boolean = false
@@ -83,7 +82,7 @@ class MaintainVisibleScrollPositionHelper(
     if (mListening) return
 
     mListening = true
-    uiManagerModule?.addUIManagerListener(this)
+    uiManager.addUIManagerEventListener(this)
     uiManagerModule?.uiImplementation?.setLayoutUpdateListener(this)
   }
 
@@ -94,7 +93,7 @@ class MaintainVisibleScrollPositionHelper(
     if (!mListening) return
 
     mListening = false
-    uiManagerModule?.removeUIManagerListener(this)
+    uiManager.removeUIManagerEventListener(this)
   }
 
   /**
@@ -151,11 +150,18 @@ class MaintainVisibleScrollPositionHelper(
     }
   }
 
-  // UIManagerModuleListener
-  override fun willDispatchViewUpdates(p0: UIManagerModule?) {
+  // UIManagerListener
+  override fun willDispatchViewUpdates(uiManager: UIManager) {
     computeTargetView()
   }
 
+  override fun didDispatchMountItems(uiManager: UIManager) {
+    // noop
+  }
+
+  override fun didScheduleMountItems(uiManager: UIManager) {
+    // noop
+  }
 
   // LayoutUpdateListener
   override fun onLayoutUpdated(p0: ReactShadowNode<out ReactShadowNode<*>>?) {

@@ -8,6 +8,11 @@ A utility package that enables the use of `onStartReached` and `maintainVisibleC
 npm install @sendbird/react-native-scrollview-enhancer
 ```
 
+| React-Native version | react-native-scrollview-enhancer version |
+| -------------------- | ---------------------------------------- |
+| `>=0.64`             | `0.2.x`                                  |
+| `<=0.63`             | `0.1.2`                                  |
+
 ## Usage
 
 You can use a scroll view components with `onStartReached` and `maintainVisibleContentPosition` applied as follows.
