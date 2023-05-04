@@ -15,7 +15,6 @@
 package com.scrollviewenhancer
 
 import android.graphics.Rect
-import android.util.Log
 import android.view.View
 import com.facebook.infer.annotation.Assertions
 import com.facebook.react.bridge.*
@@ -23,6 +22,7 @@ import com.facebook.react.uimanager.ReactShadowNode
 import com.facebook.react.uimanager.UIImplementation.LayoutUpdateListener
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.UIManagerModule
+import com.facebook.react.uimanager.UIManagerModuleListener
 import com.facebook.react.views.scroll.ReactScrollView
 import com.facebook.react.views.view.ReactViewGroup
 import java.lang.ref.WeakReference
@@ -61,7 +61,7 @@ abstract class MVCPHelper {
 class MaintainVisibleScrollPositionHelper(
   private val mScrollView: ReactScrollView,
   private val mHorizontal: Boolean = false
-): MVCPHelper(), UIManagerListener, LayoutUpdateListener {
+): MVCPHelper(), UIManagerModuleListener, LayoutUpdateListener {
   private var mFirstVisibleView: WeakReference<View>? = null
   private var mPrevFirstVisibleFrame: Rect? = null
   private var mListening: Boolean = false
@@ -83,7 +83,7 @@ class MaintainVisibleScrollPositionHelper(
     if (mListening) return
 
     mListening = true
-    uiManager.addUIManagerEventListener(this)
+    uiManagerModule?.addUIManagerListener(this)
     uiManagerModule?.uiImplementation?.setLayoutUpdateListener(this)
   }
 
@@ -94,7 +94,7 @@ class MaintainVisibleScrollPositionHelper(
     if (!mListening) return
 
     mListening = false
-    uiManager.removeUIManagerEventListener(this)
+    uiManagerModule?.removeUIManagerListener(this)
   }
 
   /**
@@ -151,18 +151,11 @@ class MaintainVisibleScrollPositionHelper(
     }
   }
 
-  // UIManagerListener
-  override fun willDispatchViewUpdates(uiManager: UIManager) {
+  // UIManagerModuleListener
+  override fun willDispatchViewUpdates(p0: UIManagerModule?) {
     computeTargetView()
   }
 
-  override fun didDispatchMountItems(uiManager: UIManager) {
-    // noop
-  }
-
-  override fun didScheduleMountItems(uiManager: UIManager) {
-    // noop
-  }
 
   // LayoutUpdateListener
   override fun onLayoutUpdated(p0: ReactShadowNode<out ReactShadowNode<*>>?) {
