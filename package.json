@@ -1,6 +1,6 @@
 {
   "name": "@sendbird/react-native-scrollview-enhancer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A utility package enabling onStartReached & maintainVisibleContentPosition in pre-0.72 react-native ScrollView.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
