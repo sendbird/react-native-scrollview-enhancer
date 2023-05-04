@@ -155,6 +155,14 @@ class MaintainVisibleScrollPositionHelper(
     computeTargetView()
   }
 
+  override fun willMountItems(p0: UIManager?) {
+    // noop
+  }
+
+  override fun didMountItems(p0: UIManager?) {
+    // noop
+  }
+
   override fun didDispatchMountItems(uiManager: UIManager) {
     // noop
   }
