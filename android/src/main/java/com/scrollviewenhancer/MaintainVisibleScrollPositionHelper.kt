@@ -101,30 +101,30 @@ class MaintainVisibleScrollPositionHelper(
    * has been updated.
    */
   override fun updateScrollPosition() {
-    if ((mConfig == null) || (mFirstVisibleView == null) || (mPrevFirstVisibleFrame == null)) {
-      return
-    }
-
-    val firstVisibleView: View? = mFirstVisibleView!!.get()
+    val config = mConfig ?: return
+    val firstVisibleView = mFirstVisibleView?.get() ?: return
+    val prevFirstVisibleFrame = mPrevFirstVisibleFrame ?: return
     val newFrame = Rect()
-    firstVisibleView!!.getHitRect(newFrame)
+
+    firstVisibleView.getHitRect(newFrame)
+
     if (mHorizontal) {
-      val deltaX: Int = newFrame.left - mPrevFirstVisibleFrame!!.left
+      val deltaX: Int = newFrame.left - prevFirstVisibleFrame.left
       if (deltaX != 0) {
         val scrollX: Int = mScrollView.scrollX
         mScrollView.scrollTo(scrollX + deltaX, mScrollView.scrollY)
         mPrevFirstVisibleFrame = newFrame
-        if (mConfig!!.autoScrollToTopThreshold != null && scrollX <= mConfig!!.autoScrollToTopThreshold!!) {
+        if (config.autoScrollToTopThreshold != null && scrollX <= config.autoScrollToTopThreshold) {
           mScrollView.reactSmoothScrollTo(0, mScrollView.scrollY)
         }
       }
     } else {
-      val deltaY: Int = newFrame.top - mPrevFirstVisibleFrame!!.top
+      val deltaY: Int = newFrame.top - prevFirstVisibleFrame.top
       if (deltaY != 0) {
         val scrollY: Int = mScrollView.scrollY
         mScrollView.scrollTo(mScrollView.scrollX, scrollY + deltaY)
         mPrevFirstVisibleFrame = newFrame
-        if (mConfig!!.autoScrollToTopThreshold != null && scrollY <= mConfig!!.autoScrollToTopThreshold!!) {
+        if (config.autoScrollToTopThreshold != null && scrollY <= config.autoScrollToTopThreshold) {
           mScrollView.reactSmoothScrollTo(mScrollView.scrollX, 0)
         }
       }
@@ -132,11 +132,11 @@ class MaintainVisibleScrollPositionHelper(
   }
 
   private fun computeTargetView() {
-    if (mConfig == null) return
+    val config = mConfig ?: return
 
     contentView?.let { contentView ->
       val currentScroll: Int = if (mHorizontal) mScrollView.scrollX else mScrollView.scrollY
-      for (i in mConfig!!.minIndexForVisible until contentView.childCount) {
+      for (i in config.minIndexForVisible until contentView.childCount) {
         val child: View = contentView.getChildAt(i)
         val position: Float = if (mHorizontal) child.x else child.y
         if (position > currentScroll || i == contentView.childCount - 1) {
