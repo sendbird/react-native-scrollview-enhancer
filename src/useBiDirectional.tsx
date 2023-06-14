@@ -49,9 +49,10 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
 
   const inProgressCall = useRef<Promise<void>>(Promise.resolve());
 
+  const dataLength = props.data?.length ?? 0;
   const isHorizontal = props.horizontal ?? false;
-  const sentEndForContentLength = useRef(new Map<number, boolean>());
-  const sentStartForContentLength = useRef(new Map<number, boolean>());
+  const sentEndForContentLength = useRef(new Map<string, boolean>());
+  const sentStartForContentLength = useRef(new Map<string, boolean>());
 
   function updateScrollMetrics(metrics: Partial<ScrollMetrics>) {
     if (typeof metrics.offset === 'number') {
@@ -107,6 +108,8 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
 
     const { distanceFromStart, distanceFromEnd } = getDistanceFrom(offset, visibleLength, contentLength);
 
+    const mapKey = String(dataLength || contentLength);
+
     const startThreshold = onEdgeReachedThresholdOrDefault(visibleLength, props.onStartReachedThreshold);
     const endThreshold = onEdgeReachedThresholdOrDefault(visibleLength, props.onEndReachedThreshold);
 
@@ -116,31 +119,27 @@ export function useBiDirectional<P extends Partial<VirtualizedListProps<any> & E
     // First check if the user just scrolled within the end threshold
     // and call onEndReached only once for a given content length,
     // and only if onStartReached is not being executed
-    if (onEndReached && isWithinEndThreshold && !sentEndForContentLength.current.has(contentLength)) {
-      sentEndForContentLength.current.set(contentLength, true);
+    if (onEndReached && isWithinEndThreshold && !sentEndForContentLength.current.has(mapKey)) {
+      sentEndForContentLength.current.set(mapKey, true);
       inProgressCall.current = inProgressCall.current
         .catch(() => {
-          sentEndForContentLength.current.delete(contentLength);
+          sentEndForContentLength.current.delete(mapKey);
         })
         .finally(() => lazyOnEndReached(distanceFromEnd));
     }
     // Next check if the user just scrolled within the start threshold
     // and call onStartReached only once for a given content length,
     // and only if onEndReached is not being executed
-    else if (
-      onStartReached != null &&
-      isWithinStartThreshold &&
-      !sentStartForContentLength.current.has(contentLength)
-    ) {
+    else if (onStartReached != null && isWithinStartThreshold && !sentStartForContentLength.current.has(mapKey)) {
       // On initial mount when using initialScrollIndex the offset will be 0 initially
       // and will trigger an unexpected onStartReached. To avoid this we can use
       // timestamp to differentiate between the initial scroll metrics and when we actually
       // received the first scroll event.
       if (!props.initialScrollIndex || scrollMetrics.current.timestamp !== 0) {
-        sentStartForContentLength.current.set(contentLength, true);
+        sentStartForContentLength.current.set(mapKey, true);
         inProgressCall.current = inProgressCall.current
           .catch(() => {
-            sentStartForContentLength.current.delete(contentLength);
+            sentStartForContentLength.current.delete(mapKey);
           })
           .finally(() => lazyOnStartReached(distanceFromEnd));
       }
